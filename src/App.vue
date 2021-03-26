@@ -47,7 +47,7 @@
           <v-card outline class="pa-4" width="45%">
             <h3 class="text-center title">
               Key <br />
-              {{ key }}
+              <input v-model="key" disabled :type="show1 ? 'text' : 'password'" />
             </h3>
             <canvas class="mx-auto d-block" id="keyQRcode"></canvas>
           </v-card>
