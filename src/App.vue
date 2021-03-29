@@ -179,7 +179,7 @@ export default {
       const reader = new FileReader();
       reader.readAsBinaryString(this.file);
       reader.onload = () => {
-        const data = reader.result.replace(/\n/g, ',').split(',');
+        const data = reader.result.trim().replace(/\n/g, ',').split(',');
         data.splice(0, 4);
 
         for (let i = 0; i < data.length; i += 2) {
