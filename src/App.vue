@@ -8,7 +8,7 @@
     <v-main>
       <v-container>
         <v-tabs v-model="tab" class="mt-12">
-          <v-tab :disabled="Boolean(form.data.adress || form.data.key)">Import from file</v-tab>
+          <v-tab :disabled="Boolean(form.data.address || form.data.key)">Import from file</v-tab>
           <h2 class="pl-10 pr-10">OR</h2>
           <v-tab :disabled="Boolean(file)">Enter manually</v-tab>
         </v-tabs>
@@ -36,8 +36,8 @@
           </v-tab-item>
           <v-tab-item class="mt-10">
             <v-text-field
-              v-model="form.data.adress"
-              label="Adress"
+              v-model="form.data.address"
+              label="Address"
               :rules="[form.rules.required]"
               outlined
             ></v-text-field>
@@ -53,7 +53,7 @@
             <v-btn depressed @click="reset()" color="red" dark class="mr-4">Reset</v-btn>
             <v-btn
               :loading="PDFLoader"
-              :disabled="pdfLoading || !Boolean(form.data.adress || form.data.key)"
+              :disabled="pdfLoading || !form.data.address || !form.data.key"
               depressed
               @click="generateFromInputs()"
               color="green"
@@ -63,14 +63,14 @@
             </v-btn>
           </v-tab-item>
         </v-tabs-items>
-        <div v-if="Boolean(form.data.adress || form.data.key)" class="mb-12 qrs-container">
+        <div v-if="Boolean(form.data.address || form.data.key)" class="mb-12 qrs-container">
           <div class="pa-12 page d-flex justify-space-between">
             <div style="max-width: 45%">
               <h3 class="text-center title">
-                Adress <br />
-                {{ form.data.adress }}
+                Address <br />
+                {{ form.data.address }}
               </h3>
-              <canvas class="mx-auto d-block" id="adressQRcode"></canvas>
+              <canvas class="mx-auto d-block" id="addressQRcode"></canvas>
             </div>
             <div style="max-width: 45%">
               <h3 class="text-center title">
@@ -89,17 +89,17 @@
           >
             <div
               v-for="(item, itemIndex) in arr"
-              :key="item.adress"
+              :key="item.address"
               class="d-flex flex-wrap justify-space-between mb-12"
             >
               <div class="pa-4" style="max-width: 45%">
                 <h3 class="text-center title">
-                  Adress <br />
-                  {{ item.adress }}
+                  Address <br />
+                  {{ item.address }}
                 </h3>
                 <canvas
                   class="mx-auto d-block"
-                  :id="`adressQRcode${arrIndex}${itemIndex}`"
+                  :id="`addressQRcode${arrIndex}${itemIndex}`"
                 ></canvas>
               </div>
               <div outline class="pa-4" style="max-width: 45%">
@@ -140,7 +140,7 @@ export default {
     pdfLoading: false,
     form: {
       data: {
-        adress: '',
+        address: '',
         key: '',
       },
       show1: false,
@@ -162,7 +162,7 @@ export default {
       });
     },
     reset() {
-      this.form.data.adress = '';
+      this.form.data.address = '';
       this.form.data.key = '';
       this.file = null;
       this.fileData = [];
@@ -184,7 +184,7 @@ export default {
 
         for (let i = 0; i < data.length; i += 2) {
           const obj = {};
-          obj.adress = data[i];
+          obj.address = data[i];
           obj.key = data[i + 1];
           this.fileData.push(obj);
         }
@@ -202,9 +202,9 @@ export default {
       this.PDFLoader = 'loading';
       this.fileData.forEach((arr, index) => {
         arr.forEach((item, itemIndex) => {
-          const adressCanvas = document.querySelector(`#adressQRcode${index}${itemIndex}`);
+          const addressCanvas = document.querySelector(`#addressQRcode${index}${itemIndex}`);
           const keyCanvas = document.querySelector(`#keyQRcode${index}${itemIndex}`);
-          QRCode.toCanvas(adressCanvas, item.adress, { width: 280 });
+          QRCode.toCanvas(addressCanvas, item.address, { width: 280 });
           QRCode.toCanvas(keyCanvas, item.key, { width: 280 });
         });
       });
