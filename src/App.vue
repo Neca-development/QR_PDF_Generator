@@ -81,15 +81,15 @@
             </div>
           </div>
         </div>
-        <div v-if="fileData.length" class="qrs-container">
+        <div v-if="fileData.length" id="Test" class="qrs-container">
           <div
             v-for="(arr, arrIndex) in fileData"
-            :key="arr[0].key"
+            :key="arr[0].key + arrIndex"
             :class="`pa-12 page page-${arrIndex - 1}`"
           >
             <div
               v-for="(item, itemIndex) in arr"
-              :key="item.address"
+              :key="item.address + itemIndex"
               class="d-flex flex-wrap justify-space-between mb-12"
             >
               <div class="pa-4" style="max-width: 45%">
@@ -181,7 +181,7 @@ export default {
       reader.onload = () => {
         const data = reader.result.trim().replace(/\n/g, ',').split(',');
         data.splice(0, 4);
-
+        console.log(data);
         for (let i = 0; i < data.length; i += 2) {
           const obj = {};
           obj.address = data[i];
@@ -208,6 +208,7 @@ export default {
           QRCode.toCanvas(keyCanvas, item.key, { width: 280 });
         });
       });
+      console.log('canvas gen');
       await this.genereatePDF();
       this.PDFLoader = null;
       return false;
