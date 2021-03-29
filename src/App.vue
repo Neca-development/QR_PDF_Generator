@@ -181,7 +181,6 @@ export default {
       reader.onload = () => {
         const data = reader.result.trim().replace(/\n/g, ',').split(',');
         data.splice(0, 4);
-        console.log(data);
         for (let i = 0; i < data.length; i += 2) {
           const obj = {};
           obj.address = data[i];
