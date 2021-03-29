@@ -12,7 +12,7 @@
           <h2 class="pl-10 pr-10">OR</h2>
           <v-tab :disabled="Boolean(file)">Enter manually</v-tab>
         </v-tabs>
-        <v-tabs-items v-model="tab">
+        <v-tabs-items v-model="tab" class="mb-12">
           <v-tab-item class="mt-10">
             <v-file-input
               v-model="file"
@@ -22,8 +22,15 @@
               dense
               @change="extractDataFromFile()"
             ></v-file-input>
-            <v-btn depressed @click="reset()" color="red" dark class="mr-4">Reset</v-btn>
-            <v-btn depressed @click="generateFromFile()" color="green" dark>
+            <v-btn depressed @click="reset()" color="red" class="mr-4" dark>Reset</v-btn>
+            <v-btn
+              :loading="PDFLoader"
+              :disabled="pdfLoading || !fileData.length"
+              depressed
+              @click="generateFromFile()"
+              color="green"
+              class="white--text"
+            >
               Generate QRs and PDF
             </v-btn>
           </v-tab-item>
@@ -44,56 +51,65 @@
               @click:append="form.show1 = !form.show1"
             ></v-text-field>
             <v-btn depressed @click="reset()" color="red" dark class="mr-4">Reset</v-btn>
-            <v-btn depressed @click="generateFromInputs()" color="green" dark>
+            <v-btn
+              :loading="PDFLoader"
+              :disabled="pdfLoading || !Boolean(form.data.adress || form.data.key)"
+              depressed
+              @click="generateFromInputs()"
+              color="green"
+              class="white--text"
+            >
               Generate QRs and PDF
             </v-btn>
           </v-tab-item>
         </v-tabs-items>
-        <div
-          v-if="Boolean(form.data.adress || form.data.key)"
-          class="d-flex justify-space-between mt-12"
-        >
-          <v-card outline class="pa-4" width="45%">
-            <h3 class="text-center title">
-              Adress <br />
-              {{ form.data.adress }}
-            </h3>
-            <canvas class="mx-auto d-block" id="adressQRcode"></canvas>
-          </v-card>
-          <v-card outline class="pa-4" width="45%">
-            <h3 class="text-center title">
-              Key <br />
-              <input
-                v-model="form.data.key"
-                disabled
-                :type="form.show1 ? 'text' : 'password'"
-                style="width: 100%"
-                class="text-center"
-              />
-            </h3>
-            <canvas class="mx-auto d-block" id="keyQRcode"></canvas>
-          </v-card>
-        </div>
-        <div v-if="fileData.length">
-          <div
-            v-for="(item, index) in fileData"
-            :key="item.key"
-            class="d-flex justify-space-between mt-12"
-          >
-            <v-card outline class="pa-4" width="45%">
+        <div v-if="Boolean(form.data.adress || form.data.key)" class="mb-12 qrs-container">
+          <div class="pa-12 page d-flex justify-space-between">
+            <div style="max-width: 45%">
               <h3 class="text-center title">
                 Adress <br />
-                {{ item.adress }}
+                {{ form.data.adress }}
               </h3>
-              <canvas class="mx-auto d-block" :id="`adressQRcode${index}`"></canvas>
-            </v-card>
-            <v-card outline class="pa-4" width="45%">
+              <canvas class="mx-auto d-block" id="adressQRcode"></canvas>
+            </div>
+            <div style="max-width: 45%">
               <h3 class="text-center title">
                 Key <br />
-                {{ item.key }}
+                {{ form.data.key }}
               </h3>
-              <canvas class="mx-auto d-block" :id="`keyQRcode${index}`"></canvas>
-            </v-card>
+              <canvas class="mx-auto d-block" id="keyQRcode"></canvas>
+            </div>
+          </div>
+        </div>
+        <div v-if="fileData.length" class="qrs-container">
+          <div
+            v-for="(arr, arrIndex) in fileData"
+            :key="arr[0].key"
+            :class="`pa-12 page page-${arrIndex - 1}`"
+          >
+            <div
+              v-for="(item, itemIndex) in arr"
+              :key="item.adress"
+              class="d-flex flex-wrap justify-space-between mb-12"
+            >
+              <div class="pa-4" style="max-width: 45%">
+                <h3 class="text-center title">
+                  Adress <br />
+                  {{ item.adress }}
+                </h3>
+                <canvas
+                  class="mx-auto d-block"
+                  :id="`adressQRcode${arrIndex}${itemIndex}`"
+                ></canvas>
+              </div>
+              <div outline class="pa-4" style="max-width: 45%">
+                <h3 class="text-center title">
+                  Key <br />
+                  {{ item.key }}
+                </h3>
+                <canvas class="mx-auto d-block" :id="`keyQRcode${arrIndex}${itemIndex}`"></canvas>
+              </div>
+            </div>
           </div>
         </div>
       </v-container>
@@ -101,14 +117,27 @@
   </v-app>
 </template>
 
+<style lang="scss" scoped>
+.qrs-container {
+  opacity: 0;
+  position: absolute;
+  top: -10000vh;
+  left: -1000vw;
+  word-break: break-all;
+}
+</style>
+
 <script>
 import QRCode from 'qrcode';
+import html2PDF from 'jspdf-html2canvas';
 
 export default {
   name: 'App',
 
   data: () => ({
     tab: null,
+    PDFLoader: null,
+    pdfLoading: false,
     form: {
       data: {
         adress: '',
@@ -159,25 +188,53 @@ export default {
           obj.key = data[i + 1];
           this.fileData.push(obj);
         }
+
+        const size = 3;
+        const arr = [];
+
+        for (let i = 0; i < this.fileData.length; i += size)
+          arr.push(this.fileData.slice(i, i + size));
+
+        this.fileData = arr;
       };
     },
-    generateFromFile() {
-      this.fileData.forEach((value, index) => {
-        const adressCanvas = document.querySelector(`#adressQRcode${index}`);
-        const keyCanvas = document.querySelector(`#keyQRcode${index}`);
-        QRCode.toCanvas(adressCanvas, value.adress);
-        QRCode.toCanvas(keyCanvas, value.key);
-        return false;
+    async generateFromFile() {
+      this.PDFLoader = 'loading';
+      this.fileData.forEach((arr, index) => {
+        arr.forEach((item, itemIndex) => {
+          const adressCanvas = document.querySelector(`#adressQRcode${index}${itemIndex}`);
+          const keyCanvas = document.querySelector(`#keyQRcode${index}${itemIndex}`);
+          QRCode.toCanvas(adressCanvas, item.adress, { width: 280 });
+          QRCode.toCanvas(keyCanvas, item.key, { width: 280 });
+        });
       });
+      await this.genereatePDF();
+      this.PDFLoader = null;
+      return false;
     },
     generateFromInputs() {
+      this.PDFLoader = 'loading';
       Object.entries(this.form.data).forEach(([key, value]) => {
         const canvas = document.querySelector(`#${key}QRcode`);
-        QRCode.toCanvas(canvas, value);
-        return false;
+        QRCode.toCanvas(canvas, value, { width: 280 });
+      });
+      this.genereatePDF();
+      this.PDFLoader = null;
+      return false;
+    },
+    async genereatePDF() {
+      const nodes = document.querySelectorAll('.page');
+      await html2PDF(nodes, {
+        jsPDF: {
+          format: 'a4',
+        },
+        imageType: 'image/jpeg',
+        output: `./pdf/qrcodes-${new Date()
+          .toLocaleString()
+          .replace(/\s/g, ':')
+          .replace(',', '')}.pdf`,
       });
     },
-    genereateCodes() {},
   },
 };
 </script>

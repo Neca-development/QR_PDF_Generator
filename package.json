@@ -9,8 +9,9 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "vue": "^2.6.11",
+    "jspdf-html2canvas": "^1.4.9",
     "qrcode": "^1.4.4",
+    "vue": "^2.6.11",
     "vuetify": "^2.4.0"
   },
   "devDependencies": {
