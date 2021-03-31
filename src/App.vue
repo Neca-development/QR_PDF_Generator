@@ -29,7 +29,7 @@
               @click="generateFromFile()"
               class="white--text"
             >
-              Generate QRs
+              Generate QRs <v-icon dark right> mdi-qrcode </v-icon>
             </v-btn>
           </v-tab-item>
           <v-tab-item class="mt-10">
@@ -56,7 +56,7 @@
               color="green"
               class="white--text"
             >
-              Generate QRs
+              Generate QRs <v-icon dark right> mdi-qrcode </v-icon>
             </v-btn>
           </v-tab-item>
         </v-tabs-items>
