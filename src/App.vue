@@ -170,8 +170,9 @@ export default {
     },
     // eslint-disable-next-line consistent-return
     extractDataFromFile() {
+      this.fileData = [];
+
       if (this.file === null) {
-        this.fileData = [];
         return false;
       }
 
