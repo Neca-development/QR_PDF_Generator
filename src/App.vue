@@ -178,8 +178,14 @@ export default {
       const reader = new FileReader();
       reader.readAsBinaryString(this.file);
       reader.onload = () => {
-        const data = reader.result.trim().replace(/\n/g, ',').replace(/;/g, ',').split(',');
+        let data = reader.result.trim().replace(/\n/g, ',').replace(/;/g, ',').split(',');
         data.splice(0, 4);
+        data = data.filter((el) => {
+          if (el === '') {
+            return false;
+          }
+          return true;
+        });
         for (let i = 0; i < data.length; i += 2) {
           const obj = {};
           obj.address = data[i];
