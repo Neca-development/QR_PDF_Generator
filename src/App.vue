@@ -29,7 +29,7 @@
               @click="generateFromFile()"
               class="white--text"
             >
-              Generate QRs and PDF
+              Generate QRs
             </v-btn>
           </v-tab-item>
           <v-tab-item class="mt-10">
@@ -56,7 +56,7 @@
               color="green"
               class="white--text"
             >
-              Generate QRs and PDF
+              Generate QRs
             </v-btn>
           </v-tab-item>
         </v-tabs-items>
@@ -196,29 +196,30 @@ export default {
         this.fileData = arr;
       };
     },
-    async generateFromFile() {
+    generateFromFile() {
       this.loader = true;
-
-      this.fileData.forEach((arr, index) => {
-        arr.forEach((item, itemIndex) => {
-          const addressCanvas = document.querySelector(`#addressQRcode${index}${itemIndex}`);
-          const keyCanvas = document.querySelector(`#keyQRcode${index}${itemIndex}`);
-          QRCode.toCanvas(addressCanvas, item.address, { width: 280 });
-          QRCode.toCanvas(keyCanvas, item.key, { width: 280 });
+      setTimeout(() => {
+        this.fileData.forEach((arr, index) => {
+          arr.forEach((item, itemIndex) => {
+            const addressCanvas = document.querySelector(`#addressQRcode${index}${itemIndex}`);
+            const keyCanvas = document.querySelector(`#keyQRcode${index}${itemIndex}`);
+            QRCode.toCanvas(addressCanvas, item.address, { width: 280 });
+            QRCode.toCanvas(keyCanvas, item.key, { width: 280 });
+          });
         });
-      });
-
-      this.loader = false;
+        this.loader = false;
+      }, 1);
 
       return false;
     },
     generateFromInputs() {
-      this.loader = 'loading';
+      this.loader = true;
+
       Object.entries(this.form.data).forEach(([key, value]) => {
         const canvas = document.querySelector(`#${key}QRcode`);
         QRCode.toCanvas(canvas, value, { width: 280 });
       });
-      this.loader = null;
+      this.loader = false;
       return false;
     },
   },
