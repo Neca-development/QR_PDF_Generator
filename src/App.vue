@@ -24,11 +24,9 @@
             ></v-file-input>
             <v-btn depressed @click="reset()" color="red" class="mr-4" dark>Reset</v-btn>
             <v-btn
-              :loading="PDFLoader"
-              :disabled="pdfLoading || !fileData.length"
-              depressed
-              @click="generateFromFile()"
+              :disabled="!fileData.length"
               color="green"
+              @click="generateFromFile()"
               class="white--text"
             >
               Generate QRs and PDF
@@ -52,8 +50,7 @@
             ></v-text-field>
             <v-btn depressed @click="reset()" color="red" dark class="mr-4">Reset</v-btn>
             <v-btn
-              :loading="PDFLoader"
-              :disabled="pdfLoading || !form.data.address || !form.data.key"
+              :disabled="!form.data.address || !form.data.key"
               depressed
               @click="generateFromInputs()"
               color="green"
@@ -63,6 +60,14 @@
             </v-btn>
           </v-tab-item>
         </v-tabs-items>
+        <v-progress-circular
+          v-if="loader"
+          indeterminate
+          size="100"
+          width="5"
+          color="green"
+          class="ma-auto d-flex"
+        ></v-progress-circular>
         <div v-if="Boolean(form.data.address || form.data.key)" class="mb-12 qrs-container">
           <div class="pa-12 page d-flex justify-space-between">
             <div style="max-width: 45%">
@@ -87,7 +92,7 @@
             :key="arr[0].key + arrIndex"
             :class="`pa-12 page page-${arrIndex - 1}`"
           >
-            <div
+            <v-card
               v-for="(item, itemIndex) in arr"
               :key="item.address + itemIndex"
               class="d-flex flex-wrap justify-space-between mb-12"
@@ -109,7 +114,7 @@
                 </h3>
                 <canvas class="mx-auto d-block" :id="`keyQRcode${arrIndex}${itemIndex}`"></canvas>
               </div>
-            </div>
+            </v-card>
           </div>
         </div>
       </v-container>
@@ -119,40 +124,34 @@
 
 <style lang="scss" scoped>
 .qrs-container {
-  opacity: 0;
-  position: absolute;
-  top: -10000vh;
-  left: -1000vw;
   word-break: break-all;
 }
 </style>
 
 <script>
 import QRCode from 'qrcode';
-import html2PDF from 'jspdf-html2canvas';
 
 export default {
   name: 'App',
 
-  data: () => ({
-    tab: null,
-    PDFLoader: null,
-    pdfLoading: false,
-    form: {
-      data: {
-        address: '',
-        key: '',
+  data() {
+    return {
+      tab: null,
+      loader: false,
+      form: {
+        data: {
+          address: '',
+          key: '',
+        },
+        show1: false,
+        rules: {
+          required: (value) => !!value || 'Required.',
+        },
       },
-      show1: false,
-      rules: {
-        required: (value) => !!value || 'Required.',
-        min: (v) => v.length >= 8 || 'Min 8 characters',
-        emailMatch: () => `The email and password you entered don't match`,
-      },
-    },
-    file: null,
-    fileData: [],
-  }),
+      file: null,
+      fileData: [],
+    };
+  },
   methods: {
     clearQRCodes() {
       const canvasesArr = document.querySelectorAll('canvas');
@@ -198,7 +197,8 @@ export default {
       };
     },
     async generateFromFile() {
-      this.PDFLoader = 'loading';
+      this.loader = true;
+
       this.fileData.forEach((arr, index) => {
         arr.forEach((item, itemIndex) => {
           const addressCanvas = document.querySelector(`#addressQRcode${index}${itemIndex}`);
@@ -207,33 +207,19 @@ export default {
           QRCode.toCanvas(keyCanvas, item.key, { width: 280 });
         });
       });
-      console.log('canvas gen');
-      await this.genereatePDF();
-      this.PDFLoader = null;
+
+      this.loader = false;
+
       return false;
     },
     generateFromInputs() {
-      this.PDFLoader = 'loading';
+      this.loader = 'loading';
       Object.entries(this.form.data).forEach(([key, value]) => {
         const canvas = document.querySelector(`#${key}QRcode`);
         QRCode.toCanvas(canvas, value, { width: 280 });
       });
-      this.genereatePDF();
-      this.PDFLoader = null;
+      this.loader = null;
       return false;
-    },
-    async genereatePDF() {
-      const nodes = document.querySelectorAll('.page');
-      await html2PDF(nodes, {
-        jsPDF: {
-          format: 'a4',
-        },
-        imageType: 'image/jpeg',
-        output: `./pdf/qrcodes-${new Date()
-          .toLocaleString()
-          .replace(/\s/g, ':')
-          .replace(',', '')}.pdf`,
-      });
     },
   },
 };
