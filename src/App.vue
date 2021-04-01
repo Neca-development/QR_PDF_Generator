@@ -251,8 +251,10 @@ export default {
       return false;
     },
     async generatePDF() {
-      if (!this.IsCodessGenerated && this.file) this.generateFromFile();
-      else this.generateFromInputs();
+      if (!this.IsCodessGenerated) {
+        if (this.file) this.generateFromFile();
+        else this.generateFromInputs();
+      }
 
       const nodes = document.querySelectorAll('.page');
       await html2PDF(nodes, {
