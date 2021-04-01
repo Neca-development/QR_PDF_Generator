@@ -108,7 +108,7 @@
             :key="arr[0].key + arrIndex"
             :class="`pa-12 page page-${arrIndex - 1}`"
           >
-            <v-card
+            <div
               v-for="(item, itemIndex) in arr"
               :key="item.address + itemIndex"
               class="d-flex flex-wrap justify-space-between mb-12"
@@ -130,7 +130,7 @@
                 </h3>
                 <canvas class="mx-auto d-block" :id="`keyQRcode${arrIndex}${itemIndex}`"></canvas>
               </div>
-            </v-card>
+            </div>
           </div>
         </div>
       </v-container>
@@ -250,23 +250,24 @@ export default {
       this.IsCodessGenerated = true;
       return false;
     },
-    async generatePDF() {
+    generatePDF() {
       if (!this.IsCodessGenerated) {
         if (this.file) this.generateFromFile();
         else this.generateFromInputs();
       }
-
-      const nodes = document.querySelectorAll('.page');
-      await html2PDF(nodes, {
-        jsPDF: {
-          format: 'a4',
-        },
-        imageType: 'image/jpeg',
-        output: `./pdf/qrcodes-${new Date()
-          .toLocaleString()
-          .replace(/\s/g, ':')
-          .replace(',', '')}.pdf`,
-      });
+      setTimeout(() => {
+        const nodes = document.querySelectorAll('.page');
+        html2PDF(nodes, {
+          jsPDF: {
+            format: 'a4',
+          },
+          imageType: 'image/jpeg',
+          output: `./pdf/qrcodes-${new Date()
+            .toLocaleString()
+            .replace(/\s/g, ':')
+            .replace(',', '')}.pdf`,
+        });
+      }, 1);
     },
   },
 };
