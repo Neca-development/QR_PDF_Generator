@@ -84,51 +84,53 @@
           color="green"
           class="ma-auto d-flex"
         ></v-progress-circular>
-        <div v-if="Boolean(form.data.address || form.data.key)" class="mb-12 qrs-container">
-          <div class="pa-12 page d-flex justify-space-between">
-            <div style="max-width: 45%">
-              <h3 class="text-center title">
-                Address <br />
-                {{ form.data.address }}
-              </h3>
-              <canvas class="mx-auto d-block" id="addressQRcode"></canvas>
-            </div>
-            <div style="max-width: 45%">
-              <h3 class="text-center title">
-                Key <br />
-                {{ form.data.key }}
-              </h3>
-              <canvas class="mx-auto d-block" id="keyQRcode"></canvas>
-            </div>
-          </div>
-        </div>
-        <div v-if="fileData.length" id="Test" class="qrs-container">
-          <div
-            v-for="(arr, arrIndex) in fileData"
-            :key="arr[0].key + arrIndex"
-            :class="`pa-12 page page-${arrIndex - 1}`"
-          >
-            <div
-              v-for="(item, itemIndex) in arr"
-              :key="item.address + itemIndex"
-              class="d-flex flex-wrap justify-space-between mb-12"
-            >
-              <div class="pa-4" style="max-width: 45%">
+        <div v-show="IsCodessGenerated">
+          <div v-if="Boolean(form.data.address || form.data.key)" class="mb-12 qrs-container">
+            <div class="pa-12 page d-flex justify-space-between">
+              <div style="max-width: 45%">
                 <h3 class="text-center title">
                   Address <br />
-                  {{ item.address }}
+                  {{ form.data.address }}
                 </h3>
-                <canvas
-                  class="mx-auto d-block"
-                  :id="`addressQRcode${arrIndex}${itemIndex}`"
-                ></canvas>
+                <canvas class="mx-auto d-block" id="addressQRcode"></canvas>
               </div>
-              <div outline class="pa-4" style="max-width: 45%">
+              <div style="max-width: 45%">
                 <h3 class="text-center title">
                   Key <br />
-                  {{ item.key }}
+                  {{ form.data.key }}
                 </h3>
-                <canvas class="mx-auto d-block" :id="`keyQRcode${arrIndex}${itemIndex}`"></canvas>
+                <canvas class="mx-auto d-block" id="keyQRcode"></canvas>
+              </div>
+            </div>
+          </div>
+          <div v-if="fileData.length" id="Test" class="qrs-container">
+            <div
+              v-for="(arr, arrIndex) in fileData"
+              :key="arr[0].key + arrIndex"
+              :class="`pa-12 page page-${arrIndex - 1}`"
+            >
+              <div
+                v-for="(item, itemIndex) in arr"
+                :key="item.address + itemIndex"
+                class="d-flex flex-wrap justify-space-between mb-12"
+              >
+                <div class="pa-4" style="max-width: 45%">
+                  <h3 class="text-center title">
+                    Address <br />
+                    {{ item.address }}
+                  </h3>
+                  <canvas
+                    class="mx-auto d-block"
+                    :id="`addressQRcode${arrIndex}${itemIndex}`"
+                  ></canvas>
+                </div>
+                <div outline class="pa-4" style="max-width: 45%">
+                  <h3 class="text-center title">
+                    Key <br />
+                    {{ item.key }}
+                  </h3>
+                  <canvas class="mx-auto d-block" :id="`keyQRcode${arrIndex}${itemIndex}`"></canvas>
+                </div>
               </div>
             </div>
           </div>
@@ -255,9 +257,10 @@ export default {
         if (this.file) this.generateFromFile();
         else this.generateFromInputs();
       }
-      setTimeout(() => {
+      setTimeout(async () => {
+        this.loader = true;
         const nodes = document.querySelectorAll('.page');
-        html2PDF(nodes, {
+        await html2PDF(nodes, {
           jsPDF: {
             format: 'a4',
           },
@@ -267,6 +270,7 @@ export default {
             .replace(/\s/g, ':')
             .replace(',', '')}.pdf`,
         });
+        this.loader = false;
       }, 1);
     },
   },
