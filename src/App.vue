@@ -27,9 +27,17 @@
               :disabled="!fileData.length"
               color="green"
               @click="generateFromFile()"
-              class="white--text"
+              class="mr-4 white--text"
             >
               Generate QRs <v-icon dark right> mdi-qrcode </v-icon>
+            </v-btn>
+            <v-btn
+              :disabled="!fileData.length"
+              color="blue"
+              @click="generatePDF()"
+              class="white--text"
+            >
+              Generate PDF <v-icon dark right> mdi-file-pdf </v-icon>
             </v-btn>
           </v-tab-item>
           <v-tab-item class="mt-10">
@@ -54,9 +62,17 @@
               depressed
               @click="generateFromInputs()"
               color="green"
-              class="white--text"
+              class="white--text mr-4"
             >
               Generate QRs <v-icon dark right> mdi-qrcode </v-icon>
+            </v-btn>
+            <v-btn
+              :disabled="!form.data.address || !form.data.key"
+              color="blue"
+              @click="generatePDF()"
+              class="white--text"
+            >
+              Generate PDF <v-icon dark right> mdi-file-pdf </v-icon>
             </v-btn>
           </v-tab-item>
         </v-tabs-items>
@@ -130,10 +146,10 @@
 
 <script>
 import QRCode from 'qrcode';
+import html2PDF from 'jspdf-html2canvas';
 
 export default {
   name: 'App',
-
   data() {
     return {
       tab: null,
@@ -150,6 +166,7 @@ export default {
       },
       file: null,
       fileData: [],
+      IsCodessGenerated: false,
     };
   },
   methods: {
@@ -166,11 +183,13 @@ export default {
       this.file = null;
       this.fileData = [];
       this.clearQRCodes();
+      this.IsCodessGenerated = false;
       return false;
     },
     // eslint-disable-next-line consistent-return
     extractDataFromFile() {
       this.fileData = [];
+      this.IsCodessGenerated = false;
 
       if (this.file === null) {
         return false;
@@ -215,6 +234,7 @@ export default {
           });
         });
         this.loader = false;
+        this.IsCodessGenerated = true;
       }, 1);
 
       return false;
@@ -227,7 +247,24 @@ export default {
         QRCode.toCanvas(canvas, value, { width: 280 });
       });
       this.loader = false;
+      this.IsCodessGenerated = true;
       return false;
+    },
+    async generatePDF() {
+      if (!this.IsCodessGenerated && this.file) this.generateFromFile();
+      else this.generateFromInputs();
+
+      const nodes = document.querySelectorAll('.page');
+      await html2PDF(nodes, {
+        jsPDF: {
+          format: 'a4',
+        },
+        imageType: 'image/jpeg',
+        output: `./pdf/qrcodes-${new Date()
+          .toLocaleString()
+          .replace(/\s/g, ':')
+          .replace(',', '')}.pdf`,
+      });
     },
   },
 };
